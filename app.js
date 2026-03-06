@@ -1,5 +1,5 @@
 const GRID_SIZE = 8;
-const WORDS_PER_PUZZLE = 8;
+const WORDS_PER_PUZZLE = 9;
 const MAX_HISTORY = 5;
 const DIRECTIONS = [
   [0, 1], [1, 0], [0, -1], [-1, 0],

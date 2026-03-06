@@ -35,8 +35,8 @@ for (let i = 0; i < 10; i++) {
   // Puzzle not null
   check(`${label} generated`, state.puzzleNumber > 0, true);
 
-  // Exactly 8 words
-  check(`${label} has 8 words`, state.words.length, 8);
+  // Exactly 9 words
+  check(`${label} has 9 words`, state.words.length, 9);
 
   // Grid is 8x8
   check(`${label} grid has 8 rows`, state.grid.length, 8);

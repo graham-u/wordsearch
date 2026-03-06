@@ -23,7 +23,7 @@ const cellCount = await p.evaluate(() => document.querySelectorAll("#grid .cell"
 check("grid has 64 cells", cellCount, 64);
 
 const wordTagCount = await p.evaluate(() => document.querySelectorAll(".word-tag").length);
-check("word list has 8 tags", wordTagCount, 8);
+check("word list has 9 tags", wordTagCount, 9);
 
 const levelText = await p.evaluate(() => document.getElementById("level-indicator").textContent);
 check("header shows Puzzle 1", levelText, "Puzzle 1");
