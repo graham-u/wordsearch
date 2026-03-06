@@ -17,6 +17,13 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - name: Apply staging branding
+        if: contains(github.repository, 'staging')
+        run: |
+          sed -i 's/fill="#2563eb"/fill="#f97316"/' icon.svg
+          sed -i 's/>WS</>DEV</' icon.svg
+          sed -i 's/"Word Search"/"Word Search (Dev)"/g' manifest.json
+          sed -i 's/<title>Word Search<\/title>/<title>Word Search (Dev)<\/title>/' index.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
