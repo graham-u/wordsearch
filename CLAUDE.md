@@ -10,7 +10,7 @@ A word search game for an elderly UK user, installed as a PWA on a tablet.
 - `style.css` — Layout and styles
 - `index.html` — App shell
 - `sw.js` — Service worker (network-first caching)
-- `tests/navigation.mjs` — Automated navigation test
+- `tests/` — Automated test suite (see Running Automated Tests below)
 
 ## Version Bumping
 
@@ -39,11 +39,27 @@ python3 -m http.server 8085  # start local server (avoid ports 8080-8081, used b
 
 ## Running Automated Tests
 
-Requires dev-browser server and local HTTP server:
+**The full test suite must pass before committing and pushing.** If a change is truly trivial (e.g. a comment-only edit), confirm with the user before skipping tests.
+
+Requires dev-browser server and local HTTP server. Start the server as a background task before running tests, and stop it with `TaskStop` afterwards:
 
 ```bash
-cd ~/.claude/skills/dev-browser && npx tsx ~/projects/wordsearch/tests/navigation.mjs
+# 1. Start local server (use run_in_background, note the task ID)
+python3 -m http.server 8085
+
+# 2. Run full test suite
+cd ~/.claude/skills/dev-browser && npx tsx ~/projects/wordsearch/tests/run-all.mjs
+
+# 3. Stop the server using TaskStop with the background task ID
 ```
+
+Individual test files can also be run directly:
+
+```bash
+cd ~/.claude/skills/dev-browser && npx tsx ~/projects/wordsearch/tests/<file>.mjs
+```
+
+Test files: `smoke.mjs`, `wordlists.mjs`, `puzzle.mjs`, `gameplay.mjs`, `hints.mjs`, `navigation.mjs`
 
 ## Audience
 
