@@ -23,7 +23,7 @@ Both must use the same version number. Bump only at deploy time, not during deve
 
 ## Deployment
 
-Push to `main` triggers GitHub Pages deployment via `.github/workflows/pages.yml`. Takes ~15-20 seconds. Monitor with:
+Push to `main` triggers GitHub Pages deployment via `.github/workflows/pages.yml`. After pushing, monitor the deployment to confirm it succeeds:
 
 ```bash
 run_id=$(gh run list --limit 1 --json databaseId -q '.[0].databaseId') && gh run watch "$run_id" --exit-status
