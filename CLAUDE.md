@@ -18,8 +18,8 @@ A word search game for an elderly UK user, installed as a PWA on a tablet.
 
 Bump in **two places** simultaneously (in the same commit as the user-facing changes):
 
-1. `index.html` — the `<div id="version">v6</div>` element (user-visible)
-2. `sw.js` — the `CACHE_NAME = "wordsearch-v6"` constant (triggers cache refresh)
+1. `index.html` — the `<div id="version">v8</div>` element (user-visible)
+2. `sw.js` — the `CACHE_NAME = "wordsearch-v8"` constant (triggers cache refresh)
 
 Both must use the same version number. The version number tells the user which build they're running (visible bottom-right corner).
 

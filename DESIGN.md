@@ -27,7 +27,7 @@ Pure vanilla HTML/CSS/JS — no build tools, no frameworks. Served as static fil
 
 1. **Category selection**: Categories are shuffled into a random order. The game cycles through them sequentially, reshuffling when exhausted. This prevents back-to-back repeats.
 
-2. **Word selection**: 8 words are picked at random from the current category. Words must be <= 8 letters (grid size).
+2. **Word selection**: 9 words are picked at random from the current category. Words must be <= 8 letters (grid size).
 
 3. **Grid placement**: Words are placed on an 8x8 grid. Longer words are placed first (they're harder to fit). Each word tries random directions (horizontal, vertical, diagonal — all 8 directions including reversed) and random positions. Words may overlap if the shared letter matches. If placement fails after 100 attempts, a different category is tried.
 
@@ -69,7 +69,7 @@ Uses an **array + cursor** model (not a stack):
 
 **Confirmation**: Both buttons show "Leave this puzzle?" if the current puzzle is partially complete (at least 1 word found but not all).
 
-**Completion**: When all 8 words are found, the completed puzzle is removed from the array, a "Well Done!" overlay shows for 2 seconds, then a new puzzle is generated.
+**Completion**: When all 9 words are found, the completed puzzle is removed from the array, a "Well Done!" overlay shows for 2 seconds, then a new puzzle is generated.
 
 ### PWA / Offline
 
@@ -84,7 +84,7 @@ Uses an **array + cursor** model (not a stack):
 ┌─────────────────────────┐
 │        Header           │  Blue bar: title, puzzle number, theme name
 ├─────────────────────────┤
-│      Word List          │  Wrapped tags, tappable for hints
+│      Word List          │  3×3 grid of tags, tappable for hints
 ├─────────────────────────┤
 │                         │
 │                         │
