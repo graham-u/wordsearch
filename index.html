@@ -16,6 +16,7 @@
   <header>
     <h1>Word Search</h1>
     <div id="level-indicator">Puzzle 1</div>
+    <div id="theme-indicator"></div>
   </header>
 
   <div id="word-list"></div>
@@ -26,10 +27,35 @@
     </div>
   </div>
 
+  <nav id="nav-bar">
+    <button id="btn-prev" disabled>Previous</button>
+    <button id="btn-next">Next Puzzle</button>
+  </nav>
+
   <div id="overlay">
     <div class="message">
       <h2>Well Done!</h2>
       <p>Loading next puzzle...</p>
+    </div>
+  </div>
+
+  <div id="confirm-dialog" class="dialog-backdrop">
+    <div class="dialog-box">
+      <p id="confirm-message">Leave this puzzle?</p>
+      <div class="dialog-buttons">
+        <button id="confirm-no">Cancel</button>
+        <button id="confirm-yes">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="hint-dialog" class="dialog-backdrop">
+    <div class="dialog-box">
+      <p id="hint-message">Show hint for this word?</p>
+      <div class="dialog-buttons">
+        <button id="hint-no">Cancel</button>
+        <button id="hint-yes">Show Hint</button>
+      </div>
     </div>
   </div>
 
