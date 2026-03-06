@@ -296,10 +296,28 @@ header h1 {
   stroke-linecap: round;
 }
 
-/* ── Version tag ── */
+/* ── Update button & version tag ── */
+#btn-update {
+  position: fixed;
+  bottom: 4px;
+  left: 6px;
+  font-size: 10px;
+  color: #94a3b8;
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  z-index: 5;
+}
+
+#btn-update:active {
+  color: #475569;
+}
+
 #version {
   position: fixed;
-  bottom: 2px;
+  bottom: 6px;
   right: 6px;
   font-size: 10px;
   color: #94a3b8;

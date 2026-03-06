@@ -497,6 +497,17 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js");
 }
 
+// ── Update button ──
+document.getElementById("btn-update").addEventListener("click", async () => {
+  if ("serviceWorker" in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(registrations.map(r => r.unregister()));
+  }
+  const keys = await caches.keys();
+  await Promise.all(keys.map(k => caches.delete(k)));
+  location.reload();
+});
+
 // ── Start ──
 initCategories();
 generatePuzzle();
