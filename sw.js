@@ -1,4 +1,4 @@
-const CACHE_NAME = "wordsearch-v10";
+const CACHE_NAME = "wordsearch-v11";
 const ASSETS = [
   ".",
   "index.html",

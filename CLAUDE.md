@@ -66,3 +66,7 @@ Test files: `smoke.mjs`, `wordlists.mjs`, `puzzle.mjs`, `gameplay.mjs`, `hints.m
 ## Audience
 
 The target user is an elderly person in the UK. All word lists use British English spellings and UK-centric references. UI should be clear, simple, with large touch targets.
+
+## Device & Orientation
+
+The app runs as a PWA on a tablet in **portrait mode**. Always test and evaluate layout in portrait orientation.
