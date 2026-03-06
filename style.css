@@ -54,15 +54,15 @@ header h1 {
 #word-list {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px 8px;
-  padding: 12px 10px;
+  gap: 5px 8px;
+  padding: 10px 10px 6px;
   flex-shrink: 0;
 }
 
 .word-tag {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 600;
-  padding: 7px 6px;
+  padding: 5px 6px;
   border-radius: 10px;
   text-align: center;
   background: #e2e8f0;
@@ -94,7 +94,7 @@ button:focus-visible, .word-tag:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6px;
+  padding: 6px 6px 4px;
   overflow: hidden;
 }
 
@@ -145,7 +145,7 @@ button:focus-visible, .word-tag:focus-visible {
 #nav-bar {
   display: flex;
   gap: 12px;
-  padding: 8px 16px 12px;
+  padding: 14px 16px 12px;
   justify-content: center;
   flex-shrink: 0;
 }
