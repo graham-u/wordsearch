@@ -17,8 +17,10 @@ const HIGHLIGHT_COLORS = [
 ];
 
 // ── State ──
-let currentPuzzle = null;   // { grid, words, theme, foundWords, foundHighlights, wordPositions }
-let puzzleHistory = [];      // last N incomplete puzzles (not including current)
+let puzzles = [];            // array of all active puzzles (up to MAX_PUZZLES)
+let puzzleIdx = -1;          // index of current puzzle in the array
+let currentPuzzle = null;    // shortcut to puzzles[puzzleIdx]
+const MAX_PUZZLES = 6;       // max puzzles kept (current + 5 incomplete)
 let puzzleNumber = 0;
 let categoryOrder = [];
 let categoryIndex = 0;
@@ -80,9 +82,8 @@ function pickWords(theme) {
 
 function generatePuzzle() {
   const theme = nextCategory();
-  for (let attempt = 0; attempt < 100; attempt++) {
+  for (let attempt = 0; attempt < 20; attempt++) {
     const words = pickWords(theme);
-    if (words.length < WORDS_PER_PUZZLE) break;
     const result = tryPlaceWords(words);
     if (result) {
       fillBlanks(result.grid);
@@ -99,8 +100,6 @@ function generatePuzzle() {
       return;
     }
   }
-  // Fallback: try again with a different category
-  generatePuzzle();
 }
 
 function tryPlaceWords(words) {
@@ -170,7 +169,7 @@ function renderAll() {
   renderLevel();
   renderFoundCells();
   renderHighlightSVG();
-  updatePrevButton();
+  updateNavButtons();
 }
 
 function renderGrid() {
@@ -217,8 +216,9 @@ function renderFoundCells() {
   }
 }
 
-function updatePrevButton() {
-  btnPrev.disabled = puzzleHistory.length === 0;
+function updateNavButtons() {
+  btnPrev.disabled = puzzleIdx <= 0;
+  btnNext.textContent = puzzleIdx < puzzles.length - 1 ? "Next" : "Next Puzzle";
 }
 
 // ── SVG highlight lines ──
@@ -306,6 +306,7 @@ function onPointerDown(e) {
   selecting = true;
   startCell = cell;
   currentCells = [{ row: cell.row, col: cell.col }];
+  gridEl.setPointerCapture(e.pointerId);
   highlightCells(currentCells);
   renderHighlightSVG();
 }
@@ -326,6 +327,9 @@ function onPointerMove(e) {
 function onPointerUp(e) {
   if (!selecting) return;
   e.preventDefault();
+  if (gridEl.hasPointerCapture(e.pointerId)) {
+    gridEl.releasePointerCapture(e.pointerId);
+  }
   selecting = false;
   checkSelection();
   clearSelectionHighlight();
@@ -351,6 +355,7 @@ function checkSelection() {
         color: HIGHLIGHT_COLORS[currentPuzzle.foundHighlights.length % HIGHLIGHT_COLORS.length]
       });
       renderHighlightSVG();
+      saveState();
       if (currentPuzzle.foundWords.size === currentPuzzle.words.length) {
         setTimeout(showComplete, 300);
       }
@@ -406,9 +411,11 @@ hintNo.addEventListener("click", () => {
 // ── Completion ──
 
 function showComplete() {
-  // Remove from history since it's complete
-  puzzleHistory = puzzleHistory.filter(p => p.puzzleNumber !== currentPuzzle.puzzleNumber);
-  updatePrevButton();
+  // Remove completed puzzle from the array
+  puzzles.splice(puzzleIdx, 1);
+  // Adjust index
+  if (puzzleIdx >= puzzles.length) puzzleIdx = puzzles.length - 1;
+  saveState();
   overlayEl.classList.add("visible");
   setTimeout(() => {
     overlayEl.classList.remove("visible");
@@ -418,31 +425,38 @@ function showComplete() {
 
 // ── Navigation ──
 
-function saveCurrent() {
-  // Save current puzzle to history if it's incomplete
-  if (currentPuzzle && currentPuzzle.foundWords.size < currentPuzzle.words.length) {
-    // Remove if already in history (to re-add at end)
-    puzzleHistory = puzzleHistory.filter(p => p.puzzleNumber !== currentPuzzle.puzzleNumber);
-    puzzleHistory.push(currentPuzzle);
-    // Keep only last MAX_HISTORY
-    if (puzzleHistory.length > MAX_HISTORY) {
-      puzzleHistory = puzzleHistory.slice(-MAX_HISTORY);
-    }
-  }
+function setCurrent(idx) {
+  puzzleIdx = idx;
+  currentPuzzle = puzzles[puzzleIdx];
+}
+
+function switchTo(idx) {
+  setCurrent(idx);
+  renderAll();
+  saveState();
 }
 
 function goToNewPuzzle() {
-  saveCurrent();
+  // If there are puzzles ahead of current position, go to next one
+  if (puzzleIdx < puzzles.length - 1) {
+    switchTo(puzzleIdx + 1);
+    return;
+  }
+  // Generate a brand new puzzle
   generatePuzzle();
+  // Trim from the front if we're over the limit
+  if (puzzles.length >= MAX_PUZZLES) {
+    puzzles.shift();
+  }
+  puzzles.push(currentPuzzle);
+  setCurrent(puzzles.length - 1);
   renderAll();
+  saveState();
 }
 
 function goToPrevPuzzle() {
-  if (puzzleHistory.length === 0) return;
-  const prev = puzzleHistory.pop();
-  saveCurrent();
-  currentPuzzle = prev;
-  renderAll();
+  if (puzzleIdx <= 0) return;
+  switchTo(puzzleIdx - 1);
 }
 
 // Confirm dialog helpers
@@ -465,9 +479,12 @@ confirmNo.addEventListener("click", () => {
   confirmCallback = null;
 });
 
+function needsConfirm() {
+  return currentPuzzle.foundWords.size > 0 && currentPuzzle.foundWords.size < currentPuzzle.words.length;
+}
+
 btnNext.addEventListener("click", () => {
-  // If current puzzle is incomplete, confirm first
-  if (currentPuzzle.foundWords.size > 0 && currentPuzzle.foundWords.size < currentPuzzle.words.length) {
+  if (needsConfirm()) {
     showConfirm("Leave this puzzle?", goToNewPuzzle);
   } else {
     goToNewPuzzle();
@@ -475,8 +492,8 @@ btnNext.addEventListener("click", () => {
 });
 
 btnPrev.addEventListener("click", () => {
-  if (puzzleHistory.length === 0) return;
-  if (currentPuzzle.foundWords.size > 0 && currentPuzzle.foundWords.size < currentPuzzle.words.length) {
+  if (puzzleIdx <= 0) return;
+  if (needsConfirm()) {
     showConfirm("Leave this puzzle?", goToPrevPuzzle);
   } else {
     goToPrevPuzzle();
@@ -489,6 +506,16 @@ gridEl.addEventListener("pointermove", onPointerMove);
 gridEl.addEventListener("pointerup", onPointerUp);
 gridEl.addEventListener("pointercancel", onPointerUp);
 gridEl.addEventListener("touchmove", e => e.preventDefault(), { passive: false });
+
+document.addEventListener("pointerup", () => {
+  if (selecting) {
+    selecting = false;
+    checkSelection();
+    clearSelectionHighlight();
+    currentCells = [];
+    renderHighlightSVG();
+  }
+});
 
 window.addEventListener("resize", () => renderHighlightSVG());
 
@@ -508,7 +535,61 @@ document.getElementById("btn-update").addEventListener("click", async () => {
   location.reload();
 });
 
+// ── State Persistence ──
+
+function saveState() {
+  try {
+    const data = {
+      puzzles: puzzles.map(p => ({
+        grid: p.grid,
+        words: p.words,
+        theme: p.theme,
+        foundWords: [...p.foundWords],
+        foundHighlights: p.foundHighlights,
+        wordPositions: p.wordPositions,
+        puzzleNumber: p.puzzleNumber
+      })),
+      puzzleIdx,
+      puzzleNumber,
+      categoryOrder,
+      categoryIndex
+    };
+    localStorage.setItem("wordsearch-state", JSON.stringify(data));
+  } catch (e) {
+    // localStorage full or unavailable — silently ignore
+  }
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem("wordsearch-state");
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (!Array.isArray(data.puzzles) || data.puzzles.length === 0) return false;
+    puzzles = data.puzzles.map(p => ({
+      grid: p.grid,
+      words: p.words,
+      theme: p.theme,
+      foundWords: new Set(p.foundWords),
+      foundHighlights: p.foundHighlights,
+      wordPositions: p.wordPositions,
+      puzzleNumber: p.puzzleNumber
+    }));
+    puzzleNumber = data.puzzleNumber;
+    categoryOrder = data.categoryOrder;
+    categoryIndex = data.categoryIndex;
+    setCurrent(data.puzzleIdx);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 // ── Start ──
-initCategories();
-generatePuzzle();
+if (!loadState()) {
+  initCategories();
+  generatePuzzle();
+  puzzles.push(currentPuzzle);
+  setCurrent(0);
+}
 renderAll();

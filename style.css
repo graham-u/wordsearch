@@ -84,6 +84,11 @@ header h1 {
   cursor: default;
 }
 
+button:focus-visible, .word-tag:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 2px;
+}
+
 /* ── Grid ── */
 #grid-container {
   flex: 1;

@@ -1,5 +1,5 @@
 // Themed word lists — 30-40 common words per category
-// All 4-8 letters, UK spellings, suitable for elderly UK audience
+// All 3-8 letters, UK spellings, suitable for elderly UK audience
 const WORD_LISTS = {
   "Animals": [
     "BEAR", "CATS", "DEER", "DOGS", "DUCK", "FROG", "GOAT", "HARE",
@@ -27,19 +27,19 @@ const WORD_LISTS = {
   ],
   "Insects": [
     "ANTS", "BEES", "FLEA", "GNAT", "MITE", "MOTH", "TICK", "WASP",
-    "APHID", "CRANE", "FLIES", "LOUSE", "MIDGE", "BEETLE", "CICADA",
+    "APHID", "CRANE", "FLIES", "LOUSE", "MIDGE", "BEETLE", "CRANEFLY",
     "EARWIG", "HORNET", "LOCUST", "MANTIS", "MAYFLY", "SAWFLY",
     "WEEVIL", "CRICKET", "FIREFLY", "LADYBIRD", "TERMITE",
-    "MONARCH", "BLUEBOTTLE", "HOVERFLY", "GREENFLY", "BLACKFLY",
-    "SANDFLY", "GADFLY", "BOTFLY", "NYMPH"
+    "MONARCH", "HOUSEFLY", "HOVERFLY", "GREENFLY", "BLACKFLY",
+    "SANDFLY", "HORSEFLY", "BEDBUG", "GRUB"
   ],
   "Fruit": [
     "DATE", "FIGS", "KIWI", "LIME", "PEAR", "PLUM", "APPLE", "GRAPE",
     "GUAVA", "LEMON", "MANGO", "MELON", "OLIVE", "PEACH", "BERRY",
     "BANANA", "CHERRY", "DAMSON", "LYCHEE", "ORANGE", "PAPAYA",
     "QUINCE", "RAISIN", "SULTANA", "APRICOT", "AVOCADO", "COCONUT",
-    "CURRANT", "KUMQUAT", "SATSUMA", "RHUBARB", "CONKER",
-    "NECTARINE", "BRAMBLE", "SLOE", "PRUNE", "MEDLAR"
+    "CURRANT", "KUMQUAT", "SATSUMA", "RHUBARB",
+    "BRAMBLE", "SLOE", "PRUNE", "MEDLAR"
   ],
   "Vegetables": [
     "BEAN", "CORN", "KALE", "LEEK", "PEAS", "SAGE", "YAMS", "CHARD",
@@ -62,7 +62,7 @@ const WORD_LISTS = {
     "COLA", "JUICE", "LAGER", "MILK", "PORT", "STOUT", "TODDY",
     "TONIC", "VODKA", "WATER", "WINE", "BRANDY", "COFFEE", "COGNAC",
     "SQUASH", "WHISKY", "SHERRY", "SHANDY", "MEAD", "PUNCH",
-    "NECTAR", "LATTE", "MOCHA", "CIDER", "BITTER", "CORDIAL",
+    "NECTAR", "LATTE", "MOCHA", "PORTER", "BITTER", "CORDIAL",
     "MERLOT", "CLARET"
   ],
   "Colours": [
@@ -85,10 +85,10 @@ const WORD_LISTS = {
   "Flowers": [
     "IRIS", "LILY", "ROSE", "ASTER", "DAISY", "LUPIN", "PANSY",
     "PEONY", "POPPY", "STOCK", "TULIP", "VIOLA", "ORCHID", "CROCUS",
-    "DAHLIA", "AZALEA", "CLOVER", "HYSSOP", "JASMINE", "MALLOW",
-    "VIOLET", "ZINNIA", "DAPHNE", "FREESIA", "LOBELIA", "NIGELLA",
+    "DAHLIA", "AZALEA", "CLOVER", "ANEMONE", "JASMINE", "MALLOW",
+    "VIOLET", "ZINNIA", "DAPHNE", "FREESIA", "LOBELIA", "SNOWDROP",
     "PRIMULA", "COWSLIP", "HEATHER", "CAMPION", "FUCHSIA",
-    "HONESTY", "LAVENDER", "PETUNIA", "SWEET PEA", "BLOSSOM",
+    "HONESTY", "LAVENDER", "PETUNIA", "BLUEBELL", "BLOSSOM",
     "THISTLE", "FOXGLOVE"
   ],
   "Trees": [
@@ -120,7 +120,7 @@ const WORD_LISTS = {
     "SEAT", "SOFA", "BENCH", "CHAIR", "CHEST", "COUCH", "DIVAN",
     "SHELF", "STOOL", "TABLE", "TRUNK", "BUREAU", "BUNKER", "CARPET",
     "CRADLE", "CUPBOARD", "DRAWER", "MIRROR", "PILLOW",
-    "SCREEN", "SETTEE", "BUREAU", "CABINET", "CUSHION", "DRESSER",
+    "SCREEN", "SETTEE", "ROCKER", "CABINET", "CUSHION", "DRESSER",
     "HAMMOCK", "OTTOMAN", "WARDROBE"
   ],
   "Tools": [
@@ -129,7 +129,7 @@ const WORD_LISTS = {
     "CHISEL", "CLAMP", "DRILL", "GAUGE", "KNIFE", "LATHE", "LEVEL",
     "PLANE", "PLUMB", "PUNCH", "RULER", "SPADE", "TROWEL", "WRENCH",
     "HAMMER", "LADDER", "PLIERS", "SANDER", "SHEARS", "SPANNER",
-    "GIMLET", "HACKSAW", "MALLET"
+    "GIMLET", "HACKSAW", "JIGSAW"
   ],
   "Countries": [
     "CUBA", "FIJI", "IRAN", "IRAQ", "LAOS", "MALI", "OMAN", "PERU",
@@ -140,7 +140,7 @@ const WORD_LISTS = {
     "CYPRUS", "ICELAND", "IRELAND", "MOROCCO", "SWEDEN"
   ],
   "Cities": [
-    "BATH", "CORK", "HULL", "YORK", "BAKU", "BONN", "KIEV", "LIMA",
+    "BATH", "CORK", "HULL", "YORK", "ATHENS", "BONN", "KIEV", "LIMA",
     "OSLO", "RIGA", "ROME", "DERBY", "DOVER", "LEEDS", "PERTH",
     "TOKYO", "TRURO", "WELLS", "BERLIN", "BOSTON", "DUBLIN", "DUNDEE",
     "EXETER", "LISBON", "LONDON", "MADRID", "MALAGA", "MOSCOW",
@@ -153,7 +153,7 @@ const WORD_LISTS = {
     "RIDING", "ROWING", "SAILING", "SKIING", "SOCCER", "SQUASH",
     "TENNIS", "ARCHERY", "CRICKET", "CROQUET", "CYCLING", "FISHING",
     "HURDLES", "JAVELIN", "JUMPING", "KARATE", "RUNNING", "SURFING",
-    "WALKING", "SNOOKER", "CURLING", "DISCUS", "SHOT PUT"
+    "WALKING", "SNOOKER", "CURLING", "DISCUS", "SKATING"
   ],
   "Music": [
     "BASS", "BEAT", "DRUM", "DUET", "FIFE", "GONG", "HARP", "HORN",
@@ -191,7 +191,7 @@ const WORD_LISTS = {
   "Transport": [
     "BIKE", "BOAT", "BRIG", "BUSS", "CART", "CARS", "JEEP", "RAFT",
     "SHIP", "SLED", "TAXI", "TRAM", "VANS", "CANOE", "COACH",
-    "FERRY", "KAYAK", "LORRY", "PLANE", "PUNT", "TRAIN", "TRUCK",
+    "FERRY", "KAYAK", "LORRY", "PLANE", "PUNT", "TRAIN", "MOPED",
     "YACHT", "BARROW", "LAUNCH", "PADDLE", "ROCKET", "SLEIGH",
     "TANKER", "VESSEL", "GLIDER", "BARGE", "DINGHY", "LINER",
     "HANSOM", "SALOON", "ESTATE", "STEAMER"
@@ -199,14 +199,14 @@ const WORD_LISTS = {
   "Gems & Stones": [
     "AGATE", "AMBER", "BERYL", "CORAL", "FLINT", "IVORY", "JADE",
     "JEWEL", "LAPIS", "ONYX", "OPAL", "PEARL", "RUBY", "SLATE",
-    "TOPAZ", "BASALT", "COBALT", "GARNET", "GNEISS", "GRAVEL",
-    "JASPER", "MARBLE", "PUMICE", "QUARTZ", "SCHIST", "ZIRCON",
+    "TOPAZ", "BASALT", "COBALT", "GARNET", "SHINGLE", "GRAVEL",
+    "JASPER", "MARBLE", "PUMICE", "QUARTZ", "MINERAL", "ZIRCON",
     "CRYSTAL", "DIAMOND", "EMERALD", "GRANITE", "OBSIDIAN",
-    "PEBBLE", "SANDSTONE", "SAPPHIRE"
+    "PEBBLE", "CHALK", "SAPPHIRE"
   ],
   "Fabrics": [
     "CORD", "FELT", "FUR", "JUTE", "LACE", "LAWN", "SILK", "WOOL",
-    "BAIZE", "CRAPE", "DENIM", "GAUZE", "LINEN", "LYCRA", "NYLON",
+    "BAIZE", "CREPE", "DENIM", "GAUZE", "LINEN", "LYCRA", "NYLON",
     "PLAID", "RAYON", "SATIN", "SERGE", "SUEDE", "TARTAN", "TULLE",
     "TWEED", "TWILL", "VOILE", "CALICO", "CANVAS", "CHINTZ",
     "COTTON", "DAMASK", "FLEECE", "JERSEY", "MUSLIN", "VELVET",
