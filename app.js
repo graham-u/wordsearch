@@ -439,8 +439,9 @@ function goToNewPuzzle() {
 
 function goToPrevPuzzle() {
   if (puzzleHistory.length === 0) return;
+  const prev = puzzleHistory.pop();
   saveCurrent();
-  currentPuzzle = puzzleHistory.pop();
+  currentPuzzle = prev;
   renderAll();
 }
 
