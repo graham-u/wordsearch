@@ -25,13 +25,26 @@ Both must use the same version number. The version number tells the user which b
 
 ## Deployment
 
-Push to `main` triggers GitHub Pages deployment via `.github/workflows/pages.yml`. After pushing, monitor the deployment to confirm it succeeds:
+There are two deployment targets — **staging** and **production** — both using GitHub Pages. Always deploy to staging first, test, then promote to production.
+
+| Environment | Repo | URL |
+|-------------|------|-----|
+| Staging | `graham-u/wordsearch-staging` | https://graham-u.github.io/wordsearch-staging/ |
+| Production | `graham-u/wordsearch` | https://graham-u.github.io/wordsearch/ |
+
+Both repos use the same `main` branch and the same Pages workflow. The staging repo is configured as a git remote called `staging`.
 
 ```bash
+# 1. Deploy to staging
+git push staging main
+run_id=$(gh run list --repo graham-u/wordsearch-staging --limit 1 --json databaseId -q '.[0].databaseId') && gh run watch "$run_id" --repo graham-u/wordsearch-staging --exit-status
+
+# 2. Test on the staging URL, then deploy to production
+git push origin main
 run_id=$(gh run list --limit 1 --json databaseId -q '.[0].databaseId') && gh run watch "$run_id" --exit-status
 ```
 
-Live at: https://graham-u.github.io/wordsearch/
+**Never push directly to production without deploying to staging first.** The production URL is installed as a PWA on the end user's tablet.
 
 ## Testing Locally
 

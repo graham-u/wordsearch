@@ -100,9 +100,14 @@ Uses an **array + cursor** model (not a stack):
 
 ## Deployment
 
-- Hosted on GitHub Pages: `https://graham-u.github.io/wordsearch/`
-- Auto-deploys on push to `main` via `.github/workflows/pages.yml`
-- Deployment takes ~15-20 seconds
+Two GitHub Pages deployments from separate repos, both using the same workflow:
+
+| Environment | Repo | URL |
+|-------------|------|-----|
+| Staging | `graham-u/wordsearch-staging` | https://graham-u.github.io/wordsearch-staging/ |
+| Production | `graham-u/wordsearch` | https://graham-u.github.io/wordsearch/ |
+
+The staging repo is a git remote called `staging` in the local checkout. Workflow: push to staging first (`git push staging main`), test, then push to production (`git push origin main`). Deployment takes ~15-20 seconds per environment.
 
 ## Testing
 
