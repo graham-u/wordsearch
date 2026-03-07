@@ -242,19 +242,18 @@ function ensureHighlightSVG() {
   if (!dragLine) {
     dragLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
     dragLine.setAttribute("stroke", "rgba(37, 99, 235, 0.3)");
-    dragLine.setAttribute("stroke-linecap", "round");
     dragLine.style.display = "none";
     highlightSVG.appendChild(dragLine);
   }
 }
 
-function renderFoundHighlights() {
+function renderFoundHighlights(cellSize) {
   ensureHighlightSVG();
   // Remove all lines except the drag line
   const lines = highlightSVG.querySelectorAll("line:not(:last-child)");
   lines.forEach(l => l.remove());
 
-  const cellSize = gridWrapper.offsetWidth / GRID_SIZE;
+  if (!cellSize) cellSize = gridWrapper.offsetWidth / GRID_SIZE;
 
   // Re-insert found highlights before the drag line
   for (const h of currentPuzzle.foundHighlights) {
@@ -265,7 +264,6 @@ function renderFoundHighlights() {
     line.setAttribute("y2", h.endRow * cellSize + cellSize / 2);
     line.setAttribute("stroke", h.color);
     line.setAttribute("stroke-width", cellSize * 0.7);
-    line.setAttribute("stroke-linecap", "round");
     highlightSVG.insertBefore(line, dragLine);
   }
 
@@ -273,9 +271,9 @@ function renderFoundHighlights() {
   dragLine.setAttribute("stroke-width", cellSize * 0.7);
 }
 
-function updateDragLine() {
+function updateDragLine(cellSize) {
   ensureHighlightSVG();
-  const cellSize = gridWrapper.offsetWidth / GRID_SIZE;
+  if (!cellSize) cellSize = gridWrapper.offsetWidth / GRID_SIZE;
 
   if (selecting && currentCells.length > 1) {
     const first = currentCells[0];
@@ -292,8 +290,9 @@ function updateDragLine() {
 }
 
 function renderHighlightSVG() {
-  renderFoundHighlights();
-  updateDragLine();
+  const cellSize = gridWrapper.offsetWidth / GRID_SIZE;
+  renderFoundHighlights(cellSize);
+  updateDragLine(cellSize);
 }
 
 // ── Touch / Pointer handling ──
@@ -638,9 +637,9 @@ function loadState() {
     puzzleNumber = data.puzzleNumber || 0;
 
     // Filter categoryOrder to only include keys that still exist in WORD_LISTS
-    const validCategories = Object.keys(WORD_LISTS);
+    const validCategories = new Set(Object.keys(WORD_LISTS));
     categoryOrder = Array.isArray(data.categoryOrder)
-      ? data.categoryOrder.filter(c => validCategories.includes(c))
+      ? data.categoryOrder.filter(c => validCategories.has(c))
       : [];
     if (categoryOrder.length === 0) {
       categoryOrder = shuffleArray(validCategories);
