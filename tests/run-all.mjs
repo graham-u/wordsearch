@@ -14,6 +14,7 @@ const tests = [
   "gameplay.mjs",
   "hints.mjs",
   "navigation.mjs",
+  "settings.mjs",
 ];
 
 const results = [];

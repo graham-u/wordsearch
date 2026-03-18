@@ -73,7 +73,7 @@ check("one cell has hint-flash", flashCount, 1);
 const flashCorrect = await p.evaluate((word) => {
   const pos = currentPuzzle.wordPositions[word];
   const firstCell = pos[0];
-  const el = document.getElementById("grid").children[firstCell.row * 8 + firstCell.col];
+  const el = document.getElementById("grid").children[firstCell.row * gridSize + firstCell.col];
   return el.classList.contains("hint-flash");
 }, firstWord);
 check("hint-flash on correct cell", flashCorrect, true);

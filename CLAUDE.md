@@ -18,8 +18,8 @@ A word search game for an elderly UK user, installed as a PWA on a tablet.
 
 Bump in **two places** simultaneously (in the same commit as the user-facing changes):
 
-1. `index.html` — the `<div id="version">v8</div>` element (user-visible)
-2. `sw.js` — the `CACHE_NAME = "wordsearch-v8"` constant (triggers cache refresh)
+1. `index.html` — the `<div id="version">v14</div>` element (user-visible)
+2. `sw.js` — the `CACHE_NAME = "wordsearch-v14"` constant (triggers cache refresh)
 
 Both must use the same version number. The version number tells the user which build they're running (visible bottom-right corner).
 
@@ -62,25 +62,33 @@ python3 -m http.server 8085  # start local server (avoid ports 8080-8081, used b
 
 **The full test suite must pass before committing and pushing.** If a change is truly trivial (e.g. a comment-only edit), confirm with the user before skipping tests.
 
-Requires dev-browser server and local HTTP server. Start the server as a background task before running tests, and stop it with `TaskStop` afterwards:
+Tests use the **dev-browser** skill (Playwright-based browser automation). Two servers must be running:
+
+1. **Local HTTP server** — serves the app files
+2. **Dev-browser server** — manages the headless Chromium instance (start via the `dev-browser` skill's `server.sh --headless`)
 
 ```bash
 # 1. Start local server (use run_in_background, note the task ID)
 python3 -m http.server 8085
 
-# 2. Run full test suite
-cd ~/.claude/skills/dev-browser && npx tsx ~/projects/wordsearch/tests/run-all.mjs
+# 2. Ensure dev-browser server is running (port 9222)
+#    Start it if needed — use the skill's server.sh script
 
-# 3. Stop the server using TaskStop with the background task ID
+# 3. Run full test suite from the dev-browser skill directory
+cd <dev-browser-skill-dir> && bun x tsx ~/mnt/ed1/projects/wordsearch/tests/run-all.mjs
+
+# 4. Stop the local server using TaskStop with the background task ID
 ```
+
+The `<dev-browser-skill-dir>` is the `skills/dev-browser/` directory inside the dev-browser plugin. Use the Skill tool to invoke `dev-browser` — it will show you the base directory path.
 
 Individual test files can also be run directly:
 
 ```bash
-cd ~/.claude/skills/dev-browser && npx tsx ~/projects/wordsearch/tests/<file>.mjs
+cd <dev-browser-skill-dir> && bun x tsx ~/mnt/ed1/projects/wordsearch/tests/<file>.mjs
 ```
 
-Test files: `smoke.mjs`, `wordlists.mjs`, `puzzle.mjs`, `gameplay.mjs`, `hints.mjs`, `navigation.mjs`
+Test files: `smoke.mjs`, `wordlists.mjs`, `puzzle.mjs`, `gameplay.mjs`, `hints.mjs`, `navigation.mjs`, `settings.mjs`
 
 ## Audience
 

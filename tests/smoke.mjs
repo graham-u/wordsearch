@@ -19,11 +19,17 @@ await p.waitForTimeout(300);
 const title = await p.title();
 check("page title", title, "Word Search");
 
-const cellCount = await p.evaluate(() => document.querySelectorAll("#grid .cell").length);
-check("grid has 64 cells", cellCount, 64);
-
-const wordTagCount = await p.evaluate(() => document.querySelectorAll(".word-tag").length);
-check("word list has 9 tags", wordTagCount, 9);
+const { cellCount, expectedCells, wordTagCount, expectedWords } = await p.evaluate(() => {
+  const gs = gridSize;
+  return {
+    cellCount: document.querySelectorAll("#grid .cell").length,
+    expectedCells: gs * gs,
+    wordTagCount: document.querySelectorAll(".word-tag").length,
+    expectedWords: GRID_CONFIGS[gs].wordsPerPuzzle,
+  };
+});
+check("grid has correct cell count", cellCount, expectedCells);
+check("word list has correct tag count", wordTagCount, expectedWords);
 
 const levelText = await p.evaluate(() => document.getElementById("level-indicator").textContent);
 check("header shows Puzzle 1", levelText, "Puzzle 1");
@@ -63,6 +69,12 @@ check("grid has aria-label", hasGridLabel, true);
 
 const overlayVisible = await p.evaluate(() => document.getElementById("overlay").classList.contains("visible"));
 check("overlay not visible on load", overlayVisible, false);
+
+const settingsRole = await p.evaluate(() => document.getElementById("settings-dialog").getAttribute("role"));
+check("settings dialog role", settingsRole, "dialog");
+
+const settingsBtnExists = await p.evaluate(() => !!document.getElementById("btn-settings"));
+check("settings button exists", settingsBtnExists, true);
 
 check("no console errors on load", pageErrors.length, 0);
 if (pageErrors.length > 0) {

@@ -27,27 +27,30 @@ for (let i = 0; i < 10; i++) {
       foundHighlights: cp.foundHighlights.length,
       allThemes: Object.keys(WORD_LISTS),
       themeWords: WORD_LISTS[cp.theme],
+      gridSize,
+      expectedWords: GRID_CONFIGS[gridSize].wordsPerPuzzle,
     };
   }, i);
 
   const label = `puzzle ${i + 1}`;
+  const gs = state.gridSize;
 
   // Puzzle not null
   check(`${label} generated`, state.puzzleNumber > 0, true);
 
-  // Exactly 9 words
-  check(`${label} has 9 words`, state.words.length, 9);
+  // Correct word count
+  check(`${label} has ${state.expectedWords} words`, state.words.length, state.expectedWords);
 
-  // Grid is 8x8
-  check(`${label} grid has 8 rows`, state.grid.length, 8);
+  // Grid dimensions match gridSize
+  check(`${label} grid has ${gs} rows`, state.grid.length, gs);
 
   let gridOk = true;
-  for (let r = 0; r < 8; r++) {
-    if (state.grid[r].length !== 8) {
+  for (let r = 0; r < gs; r++) {
+    if (state.grid[r].length !== gs) {
       gridOk = false;
       break;
     }
-    for (let c = 0; c < 8; c++) {
+    for (let c = 0; c < gs; c++) {
       const cell = state.grid[r][c];
       if (typeof cell !== "string" || cell.length !== 1 || !/^[A-Z]$/.test(cell)) {
         gridOk = false;

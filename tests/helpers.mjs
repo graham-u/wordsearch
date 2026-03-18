@@ -10,7 +10,7 @@ let failures = 0;
 let passes = 0;
 
 async function init() {
-  client = await devConnect();
+  client = await devConnect("http://localhost:9222");
   _page = await client.page("wordsearch-test", { viewport: { width: 400, height: 750 } });
   return _page;
 }
@@ -22,11 +22,17 @@ async function freshPage() {
   await _page.waitForTimeout(500);
   // Clear state — may fail if a service worker triggers a reload, so retry
   try {
-    await _page.evaluate(() => localStorage.removeItem("wordsearch-state"));
+    await _page.evaluate(() => {
+      localStorage.removeItem("wordsearch-state");
+      localStorage.removeItem("wordsearch-settings");
+    });
   } catch {
     await waitForPageLoad(_page);
     await _page.waitForTimeout(300);
-    await _page.evaluate(() => localStorage.removeItem("wordsearch-state"));
+    await _page.evaluate(() => {
+      localStorage.removeItem("wordsearch-state");
+      localStorage.removeItem("wordsearch-settings");
+    });
   }
   await _page.goto(URL);
   await waitForPageLoad(_page);

@@ -13,7 +13,7 @@ async function getGridInfo() {
   return p.evaluate(() => {
     const gridEl = document.getElementById("grid");
     const rect = gridEl.getBoundingClientRect();
-    const cellSize = rect.width / 8;
+    const cellSize = rect.width / gridSize;
     return {
       left: rect.left,
       top: rect.top,
@@ -75,7 +75,7 @@ check("word tag has .found class", wordTagFound, true);
 const cellsFound = await p.evaluate((word) => {
   const positions = currentPuzzle.wordPositions[word];
   return positions.every(({ row, col }) => {
-    const el = document.getElementById("grid").children[row * 8 + col];
+    const el = document.getElementById("grid").children[row * gridSize + col];
     return el.classList.contains("found-cell");
   });
 }, firstWord);
