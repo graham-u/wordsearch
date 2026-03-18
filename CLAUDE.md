@@ -40,14 +40,26 @@ There are two deployment targets — **staging** and **production** — both usi
 
 Both repos use the same `main` branch and the same Pages workflow. The staging repo is configured as a git remote called `staging`.
 
-```bash
-# 1. Deploy to staging
-git push staging main
-run_id=$(gh run list --repo graham-u/wordsearch-staging --limit 1 --json databaseId -q '.[0].databaseId') && gh run watch "$run_id" --repo graham-u/wordsearch-staging --exit-status
+Run each command as a **separate Bash tool call** — no command substitution or chaining, so only `git push` requires user approval.
 
-# 2. Test on the staging URL, then deploy to production
+```bash
+# 1a. Deploy to staging (requires approval)
+git push staging main
+
+# 1b. Get the run ID (separate call)
+gh run list --repo graham-u/wordsearch-staging --limit 1 --json databaseId -q '.[0].databaseId'
+
+# 1c. Watch deployment using the ID from 1b
+gh run watch <RUN_ID> --repo graham-u/wordsearch-staging --exit-status
+
+# 2a. Test on the staging URL, then deploy to production (requires approval)
 git push origin main
-run_id=$(gh run list --limit 1 --json databaseId -q '.[0].databaseId') && gh run watch "$run_id" --exit-status
+
+# 2b. Get the run ID
+gh run list --limit 1 --json databaseId -q '.[0].databaseId'
+
+# 2c. Watch deployment using the ID from 2b
+gh run watch <RUN_ID> --exit-status
 ```
 
 **Never push directly to production without deploying to staging first.** The production URL is installed as a PWA on the end user's tablet.
