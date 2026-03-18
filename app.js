@@ -49,10 +49,6 @@ const confirmDialog = document.getElementById("confirm-dialog");
 const confirmMsg = document.getElementById("confirm-message");
 const confirmYes = document.getElementById("confirm-yes");
 const confirmNo = document.getElementById("confirm-no");
-const hintDialog = document.getElementById("hint-dialog");
-const hintMsg = document.getElementById("hint-message");
-const hintYes = document.getElementById("hint-yes");
-const hintNo = document.getElementById("hint-no");
 const settingsDialog = document.getElementById("settings-dialog");
 const btnSettings = document.getElementById("btn-settings");
 const settingsOk = document.getElementById("settings-ok");
@@ -422,33 +418,16 @@ function markFound(word) {
 
 // ── Hints ──
 
-let hintWord = null;
-
 function onWordTap(word) {
   if (currentPuzzle.foundWords.has(word)) return;
-  hintWord = word;
-  hintMsg.textContent = "Show hint for \"" + word + "\"?";
-  hintDialog.classList.add("visible");
-}
-
-function showHint() {
-  hintDialog.classList.remove("visible");
-  if (!hintWord) return;
-  const cells = currentPuzzle.wordPositions[hintWord];
+  const cells = currentPuzzle.wordPositions[word];
   if (!cells || cells.length === 0) return;
   const firstCell = cells[0];
   const el = gridEl.children[firstCell.row * gridSize + firstCell.col];
   if (!el) return;
   el.classList.add("hint-flash");
   setTimeout(() => el.classList.remove("hint-flash"), 1500);
-  hintWord = null;
 }
-
-hintYes.addEventListener("click", showHint);
-hintNo.addEventListener("click", () => {
-  hintDialog.classList.remove("visible");
-  hintWord = null;
-});
 
 // ── Completion ──
 

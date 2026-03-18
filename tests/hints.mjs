@@ -1,5 +1,5 @@
 // Hint system tests
-// Run with: cd ~/.claude/skills/dev-browser && npx tsx ~/projects/wordsearch/tests/hints.mjs
+// Run with: cd <dev-browser-skill-dir> && bun x tsx ~/mnt/ed1/projects/wordsearch/tests/hints.mjs
 
 import { freshPage, check, results, disconnect, page } from "./helpers.mjs";
 
@@ -8,8 +8,8 @@ const p = page();
 
 console.log("=== Hint system ===");
 
-// ── Test 1: Tap unfound word shows hint dialog ──
-console.log("\n--- Tap unfound word ---");
+// ── Test 1: Tap unfound word immediately flashes first cell ──
+console.log("\n--- Tap unfound word flashes cell ---");
 
 const firstWord = await p.evaluate(() => currentPuzzle.words[0]);
 
@@ -20,48 +20,6 @@ await p.evaluate((word) => {
     if (tag.dataset.word === word) { tag.click(); break; }
   }
 }, firstWord);
-await p.waitForTimeout(200);
-
-const dialogVisible = await p.evaluate(() =>
-  document.getElementById("hint-dialog").classList.contains("visible")
-);
-check("hint dialog visible after tap", dialogVisible, true);
-
-const hintText = await p.evaluate(() =>
-  document.getElementById("hint-message").textContent
-);
-check("hint message contains word", hintText.includes(firstWord), true);
-
-// ── Test 2: Click Cancel hides dialog, no hint shown ──
-console.log("\n--- Cancel hint ---");
-
-await p.evaluate(() => document.getElementById("hint-no").click());
-await p.waitForTimeout(200);
-
-const dialogHidden = await p.evaluate(() =>
-  !document.getElementById("hint-dialog").classList.contains("visible")
-);
-check("dialog hidden after cancel", dialogHidden, true);
-
-const anyFlash = await p.evaluate(() =>
-  document.querySelectorAll(".hint-flash").length
-);
-check("no hint flash after cancel", anyFlash, 0);
-
-// ── Test 3: Tap word + Show Hint flashes first cell ──
-console.log("\n--- Show hint flashes cell ---");
-
-// Tap the word again
-await p.evaluate((word) => {
-  const tags = document.querySelectorAll(".word-tag");
-  for (const tag of tags) {
-    if (tag.dataset.word === word) { tag.click(); break; }
-  }
-}, firstWord);
-await p.waitForTimeout(200);
-
-// Click "Show Hint"
-await p.evaluate(() => document.getElementById("hint-yes").click());
 await p.waitForTimeout(200);
 
 const flashCount = await p.evaluate(() =>
@@ -78,7 +36,7 @@ const flashCorrect = await p.evaluate((word) => {
 }, firstWord);
 check("hint-flash on correct cell", flashCorrect, true);
 
-// ── Test 4: After 1.5s the flash class is removed ──
+// ── Test 2: After 1.5s the flash class is removed ──
 console.log("\n--- Flash removed after timeout ---");
 
 await p.waitForTimeout(1500);
@@ -88,7 +46,7 @@ const flashAfter = await p.evaluate(() =>
 );
 check("hint-flash removed after 1.5s", flashAfter, 0);
 
-// ── Test 5: Tap already-found word does NOT show dialog ──
+// ── Test 3: Tap already-found word does NOT flash ──
 console.log("\n--- Tap found word ---");
 
 // Mark the first word as found
@@ -109,10 +67,10 @@ await p.evaluate((word) => {
 }, firstWord);
 await p.waitForTimeout(200);
 
-const dialogForFound = await p.evaluate(() =>
-  document.getElementById("hint-dialog").classList.contains("visible")
+const flashForFound = await p.evaluate(() =>
+  document.querySelectorAll(".hint-flash").length
 );
-check("no hint dialog for found word", dialogForFound, false);
+check("no hint flash for found word", flashForFound, 0);
 
 await disconnect();
 process.exit(results());

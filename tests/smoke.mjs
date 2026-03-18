@@ -60,9 +60,6 @@ check("next button starts enabled", nextDisabled, false);
 const confirmRole = await p.evaluate(() => document.getElementById("confirm-dialog").getAttribute("role"));
 check("confirm dialog role", confirmRole, "dialog");
 
-const hintRole = await p.evaluate(() => document.getElementById("hint-dialog").getAttribute("role"));
-check("hint dialog role", hintRole, "dialog");
-
 const gridAriaLabel = await p.evaluate(() => document.getElementById("grid").getAttribute("aria-label"));
 const hasGridLabel = typeof gridAriaLabel === "string" && gridAriaLabel.length > 0;
 check("grid has aria-label", hasGridLabel, true);
