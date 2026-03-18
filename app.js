@@ -1,5 +1,9 @@
-const GRID_SIZE = 8;
-const WORDS_PER_PUZZLE = 9;
+const GRID_CONFIGS = {
+  8: { wordsPerPuzzle: 9 },
+  7: { wordsPerPuzzle: 6 },
+  6: { wordsPerPuzzle: 6 },
+};
+let gridSize = 8;
 const MAX_HISTORY = 5;
 const DIRECTIONS = [
   [0, 1], [1, 0], [0, -1], [-1, 0],
@@ -49,6 +53,10 @@ const hintDialog = document.getElementById("hint-dialog");
 const hintMsg = document.getElementById("hint-message");
 const hintYes = document.getElementById("hint-yes");
 const hintNo = document.getElementById("hint-no");
+const settingsDialog = document.getElementById("settings-dialog");
+const btnSettings = document.getElementById("btn-settings");
+const settingsOk = document.getElementById("settings-ok");
+const settingsCancel = document.getElementById("settings-cancel");
 
 // ── Category cycling ──
 
@@ -77,9 +85,9 @@ function initCategories() {
 // ── Puzzle Generation ──
 
 function pickWords(theme) {
-  const pool = WORD_LISTS[theme].filter(w => w.length <= GRID_SIZE);
+  const pool = WORD_LISTS[theme].filter(w => w.length <= gridSize);
   const shuffled = shuffleArray(pool);
-  return shuffled.slice(0, WORDS_PER_PUZZLE);
+  return shuffled.slice(0, GRID_CONFIGS[gridSize].wordsPerPuzzle);
 }
 
 function generatePuzzle() {
@@ -109,7 +117,7 @@ function generatePuzzle() {
 }
 
 function tryPlaceWords(words) {
-  const g = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(""));
+  const g = Array.from({ length: gridSize }, () => Array(gridSize).fill(""));
   const positions = {};
   const sorted = [...words].sort((a, b) => b.length - a.length);
   for (const word of sorted) {
@@ -124,8 +132,8 @@ function placeWord(g, word) {
   const dirs = shuffleArray(DIRECTIONS);
   for (const [dr, dc] of dirs) {
     const positions = [];
-    for (let r = 0; r < GRID_SIZE; r++) {
-      for (let c = 0; c < GRID_SIZE; c++) {
+    for (let r = 0; r < gridSize; r++) {
+      for (let c = 0; c < gridSize; c++) {
         if (canPlace(g, word, r, c, dr, dc)) {
           positions.push([r, c]);
         }
@@ -150,7 +158,7 @@ function canPlace(g, word, r, c, dr, dc) {
   for (let i = 0; i < word.length; i++) {
     const nr = r + dr * i;
     const nc = c + dc * i;
-    if (nr < 0 || nr >= GRID_SIZE || nc < 0 || nc >= GRID_SIZE) return false;
+    if (nr < 0 || nr >= gridSize || nc < 0 || nc >= gridSize) return false;
     if (g[nr][nc] !== "" && g[nr][nc] !== word[i]) return false;
   }
   return true;
@@ -158,8 +166,8 @@ function canPlace(g, word, r, c, dr, dc) {
 
 function fillBlanks(g) {
   const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  for (let r = 0; r < GRID_SIZE; r++) {
-    for (let c = 0; c < GRID_SIZE; c++) {
+  for (let r = 0; r < gridSize; r++) {
+    for (let c = 0; c < gridSize; c++) {
       if (g[r][c] === "") {
         g[r][c] = letters[Math.floor(Math.random() * 26)];
       }
@@ -180,8 +188,8 @@ function renderAll() {
 
 function renderGrid() {
   gridEl.innerHTML = "";
-  for (let r = 0; r < GRID_SIZE; r++) {
-    for (let c = 0; c < GRID_SIZE; c++) {
+  for (let r = 0; r < gridSize; r++) {
+    for (let c = 0; c < gridSize; c++) {
       const cell = document.createElement("div");
       cell.className = "cell";
       cell.textContent = currentPuzzle.grid[r][c];
@@ -215,7 +223,7 @@ function renderFoundCells() {
     const cells = currentPuzzle.wordPositions[word];
     if (cells) {
       for (const { row, col } of cells) {
-        const el = gridEl.children[row * GRID_SIZE + col];
+        const el = gridEl.children[row * gridSize + col];
         if (el) el.classList.add("found-cell");
       }
     }
@@ -253,7 +261,7 @@ function renderFoundHighlights(cellSize) {
   const lines = highlightSVG.querySelectorAll("line:not(:last-child)");
   lines.forEach(l => l.remove());
 
-  if (!cellSize) cellSize = gridWrapper.offsetWidth / GRID_SIZE;
+  if (!cellSize) cellSize = gridWrapper.offsetWidth / gridSize;
 
   // Re-insert found highlights before the drag line
   for (const h of currentPuzzle.foundHighlights) {
@@ -273,7 +281,7 @@ function renderFoundHighlights(cellSize) {
 
 function updateDragLine(cellSize) {
   ensureHighlightSVG();
-  if (!cellSize) cellSize = gridWrapper.offsetWidth / GRID_SIZE;
+  if (!cellSize) cellSize = gridWrapper.offsetWidth / gridSize;
 
   if (selecting && currentCells.length > 1) {
     const first = currentCells[0];
@@ -290,7 +298,7 @@ function updateDragLine(cellSize) {
 }
 
 function renderHighlightSVG() {
-  const cellSize = gridWrapper.offsetWidth / GRID_SIZE;
+  const cellSize = gridWrapper.offsetWidth / gridSize;
   renderFoundHighlights(cellSize);
   updateDragLine(cellSize);
 }
@@ -326,7 +334,7 @@ function clearSelectionHighlight() {
 function highlightCells(cells) {
   clearSelectionHighlight();
   for (const { row, col } of cells) {
-    const el = gridEl.children[row * GRID_SIZE + col];
+    const el = gridEl.children[row * gridSize + col];
     if (el) el.classList.add("selecting");
   }
 }
@@ -406,7 +414,7 @@ function markFound(word) {
   const cells = currentPuzzle.wordPositions[word];
   if (cells) {
     for (const { row, col } of cells) {
-      const el = gridEl.children[row * GRID_SIZE + col];
+      const el = gridEl.children[row * gridSize + col];
       if (el) el.classList.add("found-cell");
     }
   }
@@ -429,7 +437,7 @@ function showHint() {
   const cells = currentPuzzle.wordPositions[hintWord];
   if (!cells || cells.length === 0) return;
   const firstCell = cells[0];
-  const el = gridEl.children[firstCell.row * GRID_SIZE + firstCell.col];
+  const el = gridEl.children[firstCell.row * gridSize + firstCell.col];
   if (!el) return;
   el.classList.add("hint-flash");
   setTimeout(() => el.classList.remove("hint-flash"), 1500);
@@ -625,6 +633,9 @@ function loadState() {
       }
     }
 
+    // Discard saved state if grid dimensions don't match current gridSize
+    if (data.puzzles[0].grid.length !== gridSize) return false;
+
     puzzles = data.puzzles.map(p => ({
       grid: p.grid,
       words: p.words,
@@ -653,7 +664,76 @@ function loadState() {
   }
 }
 
+// ── Settings ──
+
+function loadSettings() {
+  try {
+    const raw = localStorage.getItem("wordsearch-settings");
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (GRID_CONFIGS[data.gridSize]) {
+      gridSize = data.gridSize;
+    }
+  } catch (e) {
+    // ignore
+  }
+}
+
+function saveSettings() {
+  try {
+    localStorage.setItem("wordsearch-settings", JSON.stringify({ gridSize }));
+  } catch (e) {
+    // ignore
+  }
+}
+
+function applyGridSize() {
+  document.body.dataset.gridSize = gridSize;
+  gridEl.style.setProperty("--grid-size", gridSize);
+}
+
+btnSettings.addEventListener("click", () => {
+  // Highlight the current size
+  const btns = settingsDialog.querySelectorAll(".size-btn");
+  btns.forEach(b => b.classList.toggle("selected", Number(b.dataset.size) === gridSize));
+  settingsDialog.classList.add("visible");
+});
+
+settingsDialog.addEventListener("click", (e) => {
+  if (e.target.classList.contains("size-btn")) {
+    settingsDialog.querySelectorAll(".size-btn").forEach(b => b.classList.remove("selected"));
+    e.target.classList.add("selected");
+  }
+});
+
+settingsCancel.addEventListener("click", () => {
+  settingsDialog.classList.remove("visible");
+});
+
+settingsOk.addEventListener("click", () => {
+  settingsDialog.classList.remove("visible");
+  const selected = settingsDialog.querySelector(".size-btn.selected");
+  const newSize = Number(selected.dataset.size);
+  if (newSize === gridSize) return;
+  gridSize = newSize;
+  saveSettings();
+  applyGridSize();
+  // Clear puzzle history and start fresh
+  puzzles = [];
+  puzzleIdx = -1;
+  puzzleNumber = 0;
+  initCategories();
+  if (!generatePuzzle() || !currentPuzzle) return;
+  puzzles.push(currentPuzzle);
+  setCurrent(0);
+  renderAll();
+  saveState();
+});
+
 // ── Start ──
+loadSettings();
+applyGridSize();
+
 if (!loadState()) {
   initCategories();
   if (!generatePuzzle() || !currentPuzzle) {
