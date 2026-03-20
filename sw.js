@@ -1,10 +1,11 @@
-const CACHE_NAME = "wordsearch-v16";
+const CACHE_NAME = "wordsearch-v17";
 const ASSETS = [
   ".",
   "index.html",
   "style.css",
   "app.js",
   "words.js",
+  "quotes.js",
   "manifest.json",
   "icon.svg",
   "icon-180.png"
