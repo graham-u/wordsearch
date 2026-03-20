@@ -5,6 +5,7 @@ const GRID_CONFIGS = {
 };
 let gridSize = 8;
 const MAX_HISTORY = 5;
+const QUOTE_INTERVAL = 3; // every Nth puzzle is a quote game
 const DIRECTIONS = [
   [0, 1], [1, 0], [0, -1], [-1, 0],
   [1, 1], [1, -1], [-1, 1], [-1, -1]
@@ -29,6 +30,8 @@ const MAX_PUZZLES = 6;       // max puzzles kept (current + 5 incomplete)
 let puzzleNumber = 0;
 let categoryOrder = [];
 let categoryIndex = 0;
+let quoteOrder = [];
+let quoteIndex = 0;
 
 // Selection state
 let selecting = false;
@@ -49,6 +52,9 @@ const confirmDialog = document.getElementById("confirm-dialog");
 const confirmMsg = document.getElementById("confirm-message");
 const confirmYes = document.getElementById("confirm-yes");
 const confirmNo = document.getElementById("confirm-no");
+const quoteDisplayEl = document.getElementById("quote-display");
+const quoteAuthorEl = document.getElementById("quote-author");
+const quoteTextEl = document.getElementById("quote-text");
 const settingsDialog = document.getElementById("settings-dialog");
 const btnSettings = document.getElementById("btn-settings");
 const settingsOk = document.getElementById("settings-ok");
@@ -78,6 +84,18 @@ function initCategories() {
   categoryIndex = 0;
 }
 
+function initQuotes() {
+  quoteOrder = shuffleArray(Array.from({ length: QUOTES.length }, (_, i) => i));
+  quoteIndex = 0;
+}
+
+function nextQuote() {
+  if (quoteOrder.length === 0 || quoteIndex >= quoteOrder.length) {
+    initQuotes();
+  }
+  return QUOTES[quoteOrder[quoteIndex++]];
+}
+
 // ── Puzzle Generation ──
 
 function pickWords(theme) {
@@ -87,6 +105,12 @@ function pickWords(theme) {
 }
 
 function generatePuzzle() {
+  // Try a quote puzzle at regular intervals
+  if (shouldGenerateQuote()) {
+    if (generateQuotePuzzle()) return true;
+    // Fall through to regular puzzle if quote generation fails
+  }
+
   for (let categoryAttempt = 0; categoryAttempt < 5; categoryAttempt++) {
     const theme = nextCategory();
     for (let attempt = 0; attempt < 20; attempt++) {
@@ -171,11 +195,65 @@ function fillBlanks(g) {
   }
 }
 
+// ── Quote Puzzle Generation ──
+
+function shouldGenerateQuote() {
+  return typeof QUOTES !== "undefined" && QUOTES.length > 0 && puzzleNumber > 0 && puzzleNumber % QUOTE_INTERVAL === 0;
+}
+
+function generateQuotePuzzle() {
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const quote = nextQuote();
+    // Filter words that fit in the current grid
+    const validWords = quote.words.filter(w => w.length <= gridSize && w.length >= 3);
+    if (validWords.length !== quote.words.length) continue;
+
+    // Deduplicate words for grid placement (each unique word placed once)
+    const uniqueWords = [...new Set(quote.words)];
+    const result = tryPlaceWords(uniqueWords);
+    if (!result) continue;
+
+    fillBlanks(result.grid);
+    puzzleNumber++;
+
+    // Build wordPositions mapping for ALL words (including duplicates by index)
+    // Each blank gets its own position reference
+    const wordPositions = {};
+    for (let i = 0; i < quote.words.length; i++) {
+      const key = quote.words[i] + ":" + i;
+      wordPositions[key] = result.positions[quote.words[i]];
+    }
+
+    currentPuzzle = {
+      type: "quote",
+      grid: result.grid,
+      words: quote.words,
+      theme: quote.author,
+      quote: { author: quote.author, text: quote.text },
+      foundWords: new Set(),
+      foundHighlights: [],
+      wordPositions,
+      puzzleNumber
+    };
+    return true;
+  }
+  return false;
+}
+
 // ── Rendering ──
 
 function renderAll() {
+  const isQuote = currentPuzzle.type === "quote";
   renderGrid();
-  renderWordList();
+  if (isQuote) {
+    renderQuoteDisplay();
+    wordListEl.style.display = "none";
+    quoteDisplayEl.style.display = "";
+  } else {
+    renderWordList();
+    wordListEl.style.display = "";
+    quoteDisplayEl.style.display = "none";
+  }
   renderLevel();
   renderFoundCells();
   renderHighlightSVG();
@@ -209,14 +287,44 @@ function renderWordList() {
   }
 }
 
+function renderQuoteDisplay() {
+  quoteAuthorEl.textContent = currentPuzzle.quote.author.toUpperCase();
+  quoteTextEl.innerHTML = "";
+  const text = currentPuzzle.quote.text;
+  // Split text on placeholders {0}, {1}, etc.
+  const parts = text.split(/\{(\d+)\}/);
+  for (let i = 0; i < parts.length; i++) {
+    if (i % 2 === 0) {
+      // Plain text
+      if (parts[i]) quoteTextEl.appendChild(document.createTextNode(parts[i]));
+    } else {
+      // Placeholder index
+      const idx = parseInt(parts[i]);
+      const word = currentPuzzle.words[idx];
+      const key = word + ":" + idx;
+      const span = document.createElement("span");
+      span.className = "quote-blank";
+      span.dataset.wordIndex = idx;
+      if (currentPuzzle.foundWords.has(key)) {
+        span.textContent = word;
+        span.classList.add("found");
+      } else {
+        span.textContent = "\u00A0".repeat(Math.max(word.length, 3));
+        span.addEventListener("click", () => onQuoteBlankTap(idx));
+      }
+      quoteTextEl.appendChild(span);
+    }
+  }
+}
+
 function renderLevel() {
   levelEl.textContent = "Puzzle " + currentPuzzle.puzzleNumber;
-  themeEl.textContent = currentPuzzle.theme;
+  themeEl.textContent = currentPuzzle.type === "quote" ? "Quote Game" : currentPuzzle.theme;
 }
 
 function renderFoundCells() {
-  for (const word of currentPuzzle.foundWords) {
-    const cells = currentPuzzle.wordPositions[word];
+  for (const key of currentPuzzle.foundWords) {
+    const cells = currentPuzzle.wordPositions[key];
     if (cells) {
       for (const { row, col } of cells) {
         const el = gridEl.children[row * gridSize + col];
@@ -380,24 +488,50 @@ function checkSelection() {
   const selected = currentCells.map(({ row, col }) => currentPuzzle.grid[row][col]).join("");
   const reversed = [...selected].reverse().join("");
 
-  for (const word of currentPuzzle.words) {
-    if (currentPuzzle.foundWords.has(word)) continue;
-    if (selected === word || reversed === word) {
-      currentPuzzle.foundWords.add(word);
-      markFound(word);
-      currentPuzzle.foundHighlights.push({
-        startRow: currentCells[0].row,
-        startCol: currentCells[0].col,
-        endRow: currentCells[currentCells.length - 1].row,
-        endCol: currentCells[currentCells.length - 1].col,
-        color: HIGHLIGHT_COLORS[currentPuzzle.foundHighlights.length % HIGHLIGHT_COLORS.length]
-      });
-      renderHighlightSVG();
-      saveState();
-      if (currentPuzzle.foundWords.size === currentPuzzle.words.length) {
-        setTimeout(showComplete, 300);
+  if (currentPuzzle.type === "quote") {
+    // For quote puzzles, match against word:index keys
+    for (let i = 0; i < currentPuzzle.words.length; i++) {
+      const word = currentPuzzle.words[i];
+      const key = word + ":" + i;
+      if (currentPuzzle.foundWords.has(key)) continue;
+      if (selected === word || reversed === word) {
+        currentPuzzle.foundWords.add(key);
+        markFoundQuote(key);
+        currentPuzzle.foundHighlights.push({
+          startRow: currentCells[0].row,
+          startCol: currentCells[0].col,
+          endRow: currentCells[currentCells.length - 1].row,
+          endCol: currentCells[currentCells.length - 1].col,
+          color: HIGHLIGHT_COLORS[currentPuzzle.foundHighlights.length % HIGHLIGHT_COLORS.length]
+        });
+        renderHighlightSVG();
+        saveState();
+        if (currentPuzzle.foundWords.size === currentPuzzle.words.length) {
+          setTimeout(showComplete, 300);
+        }
+        return;
       }
-      return;
+    }
+  } else {
+    for (const word of currentPuzzle.words) {
+      if (currentPuzzle.foundWords.has(word)) continue;
+      if (selected === word || reversed === word) {
+        currentPuzzle.foundWords.add(word);
+        markFound(word);
+        currentPuzzle.foundHighlights.push({
+          startRow: currentCells[0].row,
+          startCol: currentCells[0].col,
+          endRow: currentCells[currentCells.length - 1].row,
+          endCol: currentCells[currentCells.length - 1].col,
+          color: HIGHLIGHT_COLORS[currentPuzzle.foundHighlights.length % HIGHLIGHT_COLORS.length]
+        });
+        renderHighlightSVG();
+        saveState();
+        if (currentPuzzle.foundWords.size === currentPuzzle.words.length) {
+          setTimeout(showComplete, 300);
+        }
+        return;
+      }
     }
   }
 }
@@ -416,11 +550,37 @@ function markFound(word) {
   }
 }
 
+function markFoundQuote(key) {
+  // Highlight grid cells
+  const cells = currentPuzzle.wordPositions[key];
+  if (cells) {
+    for (const { row, col } of cells) {
+      const el = gridEl.children[row * gridSize + col];
+      if (el) el.classList.add("found-cell");
+    }
+  }
+  // Re-render the quote to fill in the blank
+  renderQuoteDisplay();
+}
+
 // ── Hints ──
 
 function onWordTap(word) {
   if (currentPuzzle.foundWords.has(word)) return;
   const cells = currentPuzzle.wordPositions[word];
+  if (!cells || cells.length === 0) return;
+  const firstCell = cells[0];
+  const el = gridEl.children[firstCell.row * gridSize + firstCell.col];
+  if (!el) return;
+  el.classList.add("hint-flash");
+  setTimeout(() => el.classList.remove("hint-flash"), 1500);
+}
+
+function onQuoteBlankTap(idx) {
+  const word = currentPuzzle.words[idx];
+  const key = word + ":" + idx;
+  if (currentPuzzle.foundWords.has(key)) return;
+  const cells = currentPuzzle.wordPositions[key];
   if (!cells || cells.length === 0) return;
   const firstCell = cells[0];
   const el = gridEl.children[firstCell.row * gridSize + firstCell.col];
@@ -575,9 +735,11 @@ function saveState() {
   try {
     const data = {
       puzzles: puzzles.map(p => ({
+        type: p.type || "wordsearch",
         grid: p.grid,
         words: p.words,
         theme: p.theme,
+        quote: p.quote || null,
         foundWords: [...p.foundWords],
         foundHighlights: p.foundHighlights,
         wordPositions: p.wordPositions,
@@ -586,7 +748,9 @@ function saveState() {
       puzzleIdx,
       puzzleNumber,
       categoryOrder,
-      categoryIndex
+      categoryIndex,
+      quoteOrder,
+      quoteIndex
     };
     localStorage.setItem("wordsearch-state", JSON.stringify(data));
   } catch (e) {
@@ -616,9 +780,11 @@ function loadState() {
     if (data.puzzles[0].grid.length !== gridSize) return false;
 
     puzzles = data.puzzles.map(p => ({
+      type: p.type || "wordsearch",
       grid: p.grid,
       words: p.words,
       theme: p.theme,
+      quote: p.quote || null,
       foundWords: new Set(p.foundWords),
       foundHighlights: p.foundHighlights || [],
       wordPositions: p.wordPositions,
@@ -635,6 +801,12 @@ function loadState() {
       categoryOrder = shuffleArray(validCategories);
     }
     categoryIndex = typeof data.categoryIndex === "number" ? Math.min(data.categoryIndex, categoryOrder.length) : 0;
+
+    // Restore quote cycling state
+    if (Array.isArray(data.quoteOrder) && typeof QUOTES !== "undefined") {
+      quoteOrder = data.quoteOrder.filter(i => i >= 0 && i < QUOTES.length);
+      quoteIndex = typeof data.quoteIndex === "number" ? Math.min(data.quoteIndex, quoteOrder.length) : 0;
+    }
 
     setCurrent(data.puzzleIdx);
     return true;
@@ -702,6 +874,7 @@ settingsOk.addEventListener("click", () => {
   puzzleIdx = -1;
   puzzleNumber = 0;
   initCategories();
+  initQuotes();
   if (!generatePuzzle() || !currentPuzzle) return;
   puzzles.push(currentPuzzle);
   setCurrent(0);
@@ -715,6 +888,7 @@ applyGridSize();
 
 if (!loadState()) {
   initCategories();
+  initQuotes();
   if (!generatePuzzle() || !currentPuzzle) {
     document.body.textContent = "Could not generate a puzzle. Please reload.";
   } else {
