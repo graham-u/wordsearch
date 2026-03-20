@@ -31,36 +31,29 @@ git config core.hooksPath .githooks
 
 ## Deployment
 
-There are two deployment targets — **staging** and **production** — both using GitHub Pages. Always deploy to staging first, test, then promote to production.
+Both environments are hosted on **Cloudflare Pages**, connected to the single `graham-u/wordsearch` GitHub repo. Pushes to the relevant branch trigger automatic deployments.
 
-| Environment | Repo | URL |
-|-------------|------|-----|
-| Staging | `graham-u/wordsearch-staging` | https://graham-u.github.io/wordsearch-staging/ |
-| Production | `graham-u/wordsearch` | https://graham-u.github.io/wordsearch/ |
+| Environment | Branch | URL |
+|-------------|--------|-----|
+| Staging | `staging` | https://staging.wordsearch-ctr.pages.dev/ |
+| Production | `production` | https://wordsearch-ctr.pages.dev/ |
 
-Both repos use the same `main` branch and the same Pages workflow. The staging repo is configured as a git remote called `staging`.
-
-Run each command as a **separate Bash tool call** — no command substitution or chaining, so only `git push` requires user approval.
+**Workflow:** Work on `main` (or feature branches). Merge to `staging` to deploy to staging. Test on the tablet. Then merge to `production` to deploy to production.
 
 ```bash
-# 1a. Deploy to staging (requires approval)
-git push staging main
+# 1. Deploy to staging (requires approval)
+git push origin staging
 
-# 1b. Get the run ID (separate call)
-gh run list --repo graham-u/wordsearch-staging --limit 1 --json databaseId -q '.[0].databaseId'
+# 2. Check deployment status
+export CLOUDFLARE_API_TOKEN=$(grep CLOUDFLARE_API_TOKEN .env | cut -d= -f2) && export CLOUDFLARE_ACCOUNT_ID=$(grep CLOUDFLARE_ACCOUNT_ID .env | cut -d= -f2) && npx wrangler pages deployment list --project-name wordsearch
 
-# 1c. Watch deployment using the ID from 1b
-gh run watch <RUN_ID> --repo graham-u/wordsearch-staging --exit-status
+# 3. Test on the staging URL, then deploy to production (requires approval)
+git push origin production
 
-# 2a. Test on the staging URL, then deploy to production (requires approval)
-git push origin main
-
-# 2b. Get the run ID
-gh run list --limit 1 --json databaseId -q '.[0].databaseId'
-
-# 2c. Watch deployment using the ID from 2b
-gh run watch <RUN_ID> --exit-status
+# 4. Check deployment status again (same command as step 2)
 ```
+
+Cloudflare API credentials are stored in `.env` (git-ignored). The `wrangler pages deployment list` command shows the status of all deployments.
 
 **Never push directly to production without deploying to staging first.** The production URL is installed as a PWA on the end user's tablet.
 
