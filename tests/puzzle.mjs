@@ -141,5 +141,65 @@ for (let i = 1; i < numbers.length; i++) {
 }
 check("puzzleNumbers increment", incrementsOk, true);
 
+// Verify quote interval pattern
+// puzzleNumber is checked before increment, starting at 0 (always normal).
+// interval=N means N normal puzzles between each quote, so quotes appear
+// when puzzleNumber % (N+1) === 0 && puzzleNumber > 0.
+
+// Default interval=3: first quote at puzzleNumber 4, then every 4th after
+const types = await p.evaluate(() => puzzles.map(p => p.type || "normal"));
+console.log("\n=== Quote interval pattern (interval=3) ===");
+console.log(`  (types: ${types.join(", ")})`);
+for (let i = 0; i < types.length; i++) {
+  // puzzleNumber checked is i (0-indexed); quote when i>0 && i%(3+1)===0
+  const expectQuote = i > 0 && i % 4 === 0;
+  const actual = types[i];
+  const expected = expectQuote ? "quote" : "normal";
+  check(`puzzle ${i + 1} is ${expected}`, actual, expected);
+}
+
+// Verify interval=1: 1 normal between each quote → quote at puzzleNumber 2,4,6...
+console.log("\n=== Quote interval=1 (1 normal between quotes) ===");
+await p.evaluate(() => {
+  quoteInterval = 1;
+  puzzles = [];
+  puzzleIdx = -1;
+  puzzleNumber = 0;
+  initCategories();
+  initQuotes();
+  for (let j = 0; j < 6; j++) {
+    generatePuzzle();
+    puzzles.push(currentPuzzle);
+  }
+});
+const types1 = await p.evaluate(() => puzzles.map(p => p.type || "normal"));
+console.log(`  (types: ${types1.join(", ")})`);
+for (let i = 0; i < types1.length; i++) {
+  const expectQuote = i > 0 && i % 2 === 0;
+  const actual = types1[i];
+  const expected = expectQuote ? "quote" : "normal";
+  check(`interval=1 puzzle ${i + 1} is ${expected}`, actual, expected);
+}
+
+// Verify interval=0 means all quotes
+console.log("\n=== Quote interval=0 (all quotes) ===");
+await p.evaluate(() => {
+  quoteInterval = 0;
+  puzzles = [];
+  puzzleIdx = -1;
+  puzzleNumber = 0;
+  initCategories();
+  initQuotes();
+  for (let j = 0; j < 4; j++) {
+    generatePuzzle();
+    puzzles.push(currentPuzzle);
+  }
+});
+const types0 = await p.evaluate(() => puzzles.map(p => p.type || "normal"));
+console.log(`  (types: ${types0.join(", ")})`);
+for (let i = 0; i < types0.length; i++) {
+  check(`interval=0 puzzle ${i + 1} is quote`, types0[i], "quote");
+}
+
 await disconnect();
 process.exit(results());
