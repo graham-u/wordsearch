@@ -200,7 +200,7 @@ function fillBlanks(g) {
 function shouldGenerateQuote() {
   if (typeof QUOTES === "undefined" || QUOTES.length === 0) return false;
   if (quoteInterval === 0) return true;
-  return puzzleNumber > 0 && puzzleNumber % quoteInterval === 0;
+  return puzzleNumber > 0 && puzzleNumber % (quoteInterval + 1) === 0;
 }
 
 function generateQuotePuzzle() {
@@ -880,24 +880,21 @@ settingsOk.addEventListener("click", () => {
   const selectedQuote = settingsDialog.querySelector(".quote-btn.selected");
   const newInterval = Number(selectedQuote.dataset.interval);
   if (newSize === gridSize && newInterval === quoteInterval) return;
-  const sizeChanged = newSize !== gridSize;
   gridSize = newSize;
   quoteInterval = newInterval;
   saveSettings();
-  if (sizeChanged) {
-    applyGridSize();
-    // Clear puzzle history and start fresh
-    puzzles = [];
-    puzzleIdx = -1;
-    puzzleNumber = 0;
-    initCategories();
-    initQuotes();
-    if (!generatePuzzle() || !currentPuzzle) return;
-    puzzles.push(currentPuzzle);
-    setCurrent(0);
-    renderAll();
-    saveState();
-  }
+  applyGridSize();
+  // Clear puzzle history and start fresh
+  puzzles = [];
+  puzzleIdx = -1;
+  puzzleNumber = 0;
+  initCategories();
+  initQuotes();
+  if (!generatePuzzle() || !currentPuzzle) return;
+  puzzles.push(currentPuzzle);
+  setCurrent(0);
+  renderAll();
+  saveState();
 });
 
 // ── Start ──
