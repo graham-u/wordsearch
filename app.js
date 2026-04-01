@@ -5,7 +5,7 @@ const GRID_CONFIGS = {
 };
 let gridSize = 8;
 const MAX_HISTORY = 5;
-const QUOTE_INTERVAL = 3; // every Nth puzzle is a quote game
+let quoteInterval = 3; // every Nth puzzle is a quote game (0 = all quotes)
 const DIRECTIONS = [
   [0, 1], [1, 0], [0, -1], [-1, 0],
   [1, 1], [1, -1], [-1, 1], [-1, -1]
@@ -198,7 +198,9 @@ function fillBlanks(g) {
 // ── Quote Puzzle Generation ──
 
 function shouldGenerateQuote() {
-  return typeof QUOTES !== "undefined" && QUOTES.length > 0 && puzzleNumber > 0 && puzzleNumber % QUOTE_INTERVAL === 0;
+  if (typeof QUOTES === "undefined" || QUOTES.length === 0) return false;
+  if (quoteInterval === 0) return true;
+  return puzzleNumber > 0 && puzzleNumber % quoteInterval === 0;
 }
 
 function generateQuotePuzzle() {
@@ -825,6 +827,9 @@ function loadSettings() {
     if (GRID_CONFIGS[data.gridSize]) {
       gridSize = data.gridSize;
     }
+    if (data.quoteInterval != null && data.quoteInterval >= 0 && data.quoteInterval <= 3) {
+      quoteInterval = data.quoteInterval;
+    }
   } catch (e) {
     // ignore
   }
@@ -832,7 +837,7 @@ function loadSettings() {
 
 function saveSettings() {
   try {
-    localStorage.setItem("wordsearch-settings", JSON.stringify({ gridSize }));
+    localStorage.setItem("wordsearch-settings", JSON.stringify({ gridSize, quoteInterval }));
   } catch (e) {
     // ignore
   }
@@ -847,12 +852,19 @@ btnSettings.addEventListener("click", () => {
   // Highlight the current size
   const btns = settingsDialog.querySelectorAll(".size-btn");
   btns.forEach(b => b.classList.toggle("selected", Number(b.dataset.size) === gridSize));
+  // Highlight the current quote interval
+  const qbtns = settingsDialog.querySelectorAll(".quote-btn");
+  qbtns.forEach(b => b.classList.toggle("selected", Number(b.dataset.interval) === quoteInterval));
   settingsDialog.classList.add("visible");
 });
 
 settingsDialog.addEventListener("click", (e) => {
   if (e.target.classList.contains("size-btn")) {
     settingsDialog.querySelectorAll(".size-btn").forEach(b => b.classList.remove("selected"));
+    e.target.classList.add("selected");
+  }
+  if (e.target.classList.contains("quote-btn")) {
+    settingsDialog.querySelectorAll(".quote-btn").forEach(b => b.classList.remove("selected"));
     e.target.classList.add("selected");
   }
 });
@@ -865,21 +877,27 @@ settingsOk.addEventListener("click", () => {
   settingsDialog.classList.remove("visible");
   const selected = settingsDialog.querySelector(".size-btn.selected");
   const newSize = Number(selected.dataset.size);
-  if (newSize === gridSize) return;
+  const selectedQuote = settingsDialog.querySelector(".quote-btn.selected");
+  const newInterval = Number(selectedQuote.dataset.interval);
+  if (newSize === gridSize && newInterval === quoteInterval) return;
+  const sizeChanged = newSize !== gridSize;
   gridSize = newSize;
+  quoteInterval = newInterval;
   saveSettings();
-  applyGridSize();
-  // Clear puzzle history and start fresh
-  puzzles = [];
-  puzzleIdx = -1;
-  puzzleNumber = 0;
-  initCategories();
-  initQuotes();
-  if (!generatePuzzle() || !currentPuzzle) return;
-  puzzles.push(currentPuzzle);
-  setCurrent(0);
-  renderAll();
-  saveState();
+  if (sizeChanged) {
+    applyGridSize();
+    // Clear puzzle history and start fresh
+    puzzles = [];
+    puzzleIdx = -1;
+    puzzleNumber = 0;
+    initCategories();
+    initQuotes();
+    if (!generatePuzzle() || !currentPuzzle) return;
+    puzzles.push(currentPuzzle);
+    setCurrent(0);
+    renderAll();
+    saveState();
+  }
 });
 
 // ── Start ──

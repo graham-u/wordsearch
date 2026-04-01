@@ -19,6 +19,7 @@ for (let i = 0; i < 10; i++) {
     const cp = currentPuzzle;
     return {
       puzzleNumber: cp.puzzleNumber,
+      type: cp.type || "normal",
       theme: cp.theme,
       words: cp.words,
       grid: cp.grid,
@@ -26,7 +27,7 @@ for (let i = 0; i < 10; i++) {
       foundWords: cp.foundWords.size,
       foundHighlights: cp.foundHighlights.length,
       allThemes: Object.keys(WORD_LISTS),
-      themeWords: WORD_LISTS[cp.theme],
+      themeWords: cp.type === "quote" ? null : WORD_LISTS[cp.theme],
       gridSize,
       expectedWords: GRID_CONFIGS[gridSize].wordsPerPuzzle,
     };
@@ -34,12 +35,19 @@ for (let i = 0; i < 10; i++) {
 
   const label = `puzzle ${i + 1}`;
   const gs = state.gridSize;
+  const isQuote = state.type === "quote";
 
   // Puzzle not null
   check(`${label} generated`, state.puzzleNumber > 0, true);
 
-  // Correct word count
-  check(`${label} has ${state.expectedWords} words`, state.words.length, state.expectedWords);
+  if (isQuote) {
+    // Quote puzzles have variable word count; just check at least 1
+    check(`${label} is quote puzzle`, true, true);
+    check(`${label} has words`, state.words.length > 0, true);
+  } else {
+    // Correct word count
+    check(`${label} has ${state.expectedWords} words`, state.words.length, state.expectedWords);
+  }
 
   // Grid dimensions match gridSize
   check(`${label} grid has ${gs} rows`, state.grid.length, gs);
@@ -62,34 +70,58 @@ for (let i = 0; i < 10; i++) {
   check(`${label} grid cells valid`, gridOk, true);
 
   // Each word's positions spell out the word
+  // Quote puzzles use "WORD:index" keys in wordPositions
   let positionsOk = true;
-  for (const word of state.words) {
-    const cells = state.wordPositions[word];
-    if (!cells || cells.length !== word.length) {
-      console.log(`  FAIL ${label} word "${word}" has wrong position count`);
-      positionsOk = false;
-      continue;
+  if (isQuote) {
+    for (let wi = 0; wi < state.words.length; wi++) {
+      const word = state.words[wi];
+      const key = word + ":" + wi;
+      const cells = state.wordPositions[key];
+      if (!cells || cells.length !== word.length) {
+        console.log(`  FAIL ${label} word "${word}" has wrong position count`);
+        positionsOk = false;
+        continue;
+      }
+      const spelled = cells.map(({ row, col }) => state.grid[row][col]).join("");
+      if (spelled !== word) {
+        console.log(`  FAIL ${label} word "${word}" positions spell "${spelled}"`);
+        positionsOk = false;
+      }
     }
-    const spelled = cells.map(({ row, col }) => state.grid[row][col]).join("");
-    if (spelled !== word) {
-      console.log(`  FAIL ${label} word "${word}" positions spell "${spelled}"`);
-      positionsOk = false;
+  } else {
+    for (const word of state.words) {
+      const cells = state.wordPositions[word];
+      if (!cells || cells.length !== word.length) {
+        console.log(`  FAIL ${label} word "${word}" has wrong position count`);
+        positionsOk = false;
+        continue;
+      }
+      const spelled = cells.map(({ row, col }) => state.grid[row][col]).join("");
+      if (spelled !== word) {
+        console.log(`  FAIL ${label} word "${word}" positions spell "${spelled}"`);
+        positionsOk = false;
+      }
     }
   }
   check(`${label} word positions correct`, positionsOk, true);
 
-  // Valid theme
-  check(`${label} theme exists`, state.allThemes.includes(state.theme), true);
+  if (isQuote) {
+    // Quote theme is the author name, not a WORD_LISTS key
+    check(`${label} has theme (author)`, state.theme.length > 0, true);
+  } else {
+    // Valid theme
+    check(`${label} theme exists`, state.allThemes.includes(state.theme), true);
 
-  // All words belong to the theme
-  let wordsInTheme = true;
-  for (const word of state.words) {
-    if (!state.themeWords.includes(word)) {
-      console.log(`  FAIL ${label} word "${word}" not in theme "${state.theme}"`);
-      wordsInTheme = false;
+    // All words belong to the theme
+    let wordsInTheme = true;
+    for (const word of state.words) {
+      if (!state.themeWords.includes(word)) {
+        console.log(`  FAIL ${label} word "${word}" not in theme "${state.theme}"`);
+        wordsInTheme = false;
+      }
     }
+    check(`${label} words belong to theme`, wordsInTheme, true);
   }
-  check(`${label} words belong to theme`, wordsInTheme, true);
 
   // foundWords starts empty
   check(`${label} foundWords empty`, state.foundWords, 0);

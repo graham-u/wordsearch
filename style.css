@@ -388,10 +388,18 @@ body:has(#overlay.visible) #nav-bar {
   display: flex;
   gap: 10px;
   justify-content: center;
-  margin-bottom: 80px;
+  margin-bottom: 24px;
 }
 
-.size-btn {
+#quote-options {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.size-btn,
+.quote-btn {
   flex: 1;
   padding: 12px 8px;
   border: 2px solid #e2e8f0;
@@ -405,7 +413,8 @@ body:has(#overlay.visible) #nav-bar {
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
-.size-btn.selected {
+.size-btn.selected,
+.quote-btn.selected {
   background: #2563eb;
   border-color: #2563eb;
   color: white;
