@@ -82,7 +82,7 @@ python3 -m http.server 8085
 #    Start it if needed — use the skill's server.sh script
 
 # 3. Run full test suite from the dev-browser skill directory
-cd <dev-browser-skill-dir> && bun x tsx ~/mnt/ed1/projects/wordsearch/tests/run-all.mjs
+cd <dev-browser-skill-dir> && npx tsx ~/projects/wordsearch/tests/run-all.mjs
 
 # 4. Stop the local server using TaskStop with the background task ID
 ```
@@ -92,7 +92,7 @@ The `<dev-browser-skill-dir>` is the `skills/dev-browser/` directory inside the 
 Individual test files can also be run directly:
 
 ```bash
-cd <dev-browser-skill-dir> && bun x tsx ~/mnt/ed1/projects/wordsearch/tests/<file>.mjs
+cd <dev-browser-skill-dir> && npx tsx ~/projects/wordsearch/tests/<file>.mjs
 ```
 
 Test files: `smoke.mjs`, `wordlists.mjs`, `puzzle.mjs`, `gameplay.mjs`, `hints.mjs`, `navigation.mjs`, `settings.mjs`
