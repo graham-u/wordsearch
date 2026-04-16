@@ -41,19 +41,21 @@ Both environments are hosted on **Cloudflare Pages**, connected to the single `g
 **Workflow:** Work on `main` (or feature branches). Merge to `staging` to deploy to staging. Test on the tablet. Then merge to `production` to deploy to production.
 
 ```bash
-# 1. Deploy to staging (requires approval)
+# 1. Deploy to staging (requires user approval)
 git push origin staging
 
 # 2. Check deployment status
-export CLOUDFLARE_API_TOKEN=$(grep CLOUDFLARE_API_TOKEN .env | cut -d= -f2) && export CLOUDFLARE_ACCOUNT_ID=$(grep CLOUDFLARE_ACCOUNT_ID .env | cut -d= -f2) && npx wrangler pages deployment list --project-name wordsearch
+bash check-deploy.sh
 
-# 3. Test on the staging URL, then deploy to production (requires approval)
+# 3. Test on the staging URL, then deploy to production (requires user approval)
 git push origin production
 
 # 4. Check deployment status again (same command as step 2)
 ```
 
-Cloudflare API credentials are stored in `.env` (git-ignored). The `wrangler pages deployment list` command shows the status of all deployments.
+Cloudflare API credentials are stored in `.env` (git-ignored). `check-deploy.sh` (also git-ignored) wraps the wrangler deployment list command.
+
+A `build.sh` script runs at deploy time on Cloudflare Pages. On the `staging` branch it applies visual branding (yellow background, orange "DEV" icon, "(Staging)" title). On `production` it's a no-op.
 
 **Never push directly to production without deploying to staging first.** The production URL is installed as a PWA on the end user's tablet.
 
