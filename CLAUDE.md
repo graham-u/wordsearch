@@ -7,6 +7,7 @@ A word search game for an elderly UK user, installed as a PWA on a tablet.
 - `DESIGN.md` — Full spec and architecture documentation
 - `app.js` — Game logic, puzzle generation, touch handling, navigation
 - `words.js` — Themed word lists (28 categories)
+- `quotes.js` — Quotes for the Quote Game puzzle type
 - `style.css` — Layout and styles
 - `index.html` — App shell
 - `sw.js` — Service worker (network-first caching)
@@ -14,12 +15,12 @@ A word search game for an elderly UK user, installed as a PWA on a tablet.
 
 ## Version Bumping
 
-**Every push that changes user-facing files requires a version bump.** User-facing files are: `app.js`, `words.js`, `style.css`, `index.html`, `sw.js`, `manifest.json`, `icon.svg`. Pushes that only change non-deployed files (`CLAUDE.md`, `DESIGN.md`, `TODO.md`, `tests/`, `.github/`) do not need a bump.
+**Every push that changes user-facing files requires a version bump.** User-facing files are: `app.js`, `words.js`, `quotes.js`, `style.css`, `index.html`, `sw.js`, `manifest.json`, `icon.svg`, `icon-180.png`. Pushes that only change non-deployed files (`CLAUDE.md`, `DESIGN.md`, `TODO.md`, `tests/`, `.github/`) do not need a bump.
 
 Bump in **two places** simultaneously (in the same commit as the user-facing changes):
 
-1. `index.html` — the `<div id="version">v14</div>` element (user-visible)
-2. `sw.js` — the `CACHE_NAME = "wordsearch-v14"` constant (triggers cache refresh)
+1. `index.html` — the `<div id="version">vN</div>` element (user-visible)
+2. `sw.js` — the `CACHE_NAME = "wordsearch-vN"` constant (triggers cache refresh)
 
 Both must use the same version number. The version number tells the user which build they're running (visible bottom-right corner).
 
@@ -69,30 +70,20 @@ python3 -m http.server 8085  # start local server (avoid ports 8080-8081, used b
 
 **The full test suite must pass before committing and pushing.** If a change is truly trivial (e.g. a comment-only edit), confirm with the user before skipping tests.
 
-Tests use the **dev-browser** skill (Playwright-based browser automation). Two servers must be running:
+Tests use the **dev-browser** skill (Playwright-based browser automation) and need two servers:
 
-1. **Local HTTP server** — serves the app files
-2. **Dev-browser server** — manages the headless Chromium instance (start via the `dev-browser` skill's `server.sh --headless`)
+1. **Local HTTP server** — serves the app files on port 8085. Start it in the background before the run and stop it afterwards.
+2. **Dev-browser server** — the `dev-browser.service` systemd user unit, already running on port 9222 (see `~/.claude/reference/dev-browser.md`).
 
 ```bash
-# 1. Start local server (use run_in_background, note the task ID)
 python3 -m http.server 8085
-
-# 2. Ensure dev-browser server is running (port 9222)
-#    Start it if needed — use the skill's server.sh script
-
-# 3. Run full test suite from the dev-browser skill directory
-cd <dev-browser-skill-dir> && npx tsx ~/projects/wordsearch/tests/run-all.mjs
-
-# 4. Stop the local server using TaskStop with the background task ID
+cd ~/.claude/skills/dev-browser && npx tsx ~/projects/wordsearch/tests/run-all.mjs
 ```
-
-The `<dev-browser-skill-dir>` is the `skills/dev-browser/` directory inside the dev-browser plugin. Use the Skill tool to invoke `dev-browser` — it will show you the base directory path.
 
 Individual test files can also be run directly:
 
 ```bash
-cd <dev-browser-skill-dir> && npx tsx ~/projects/wordsearch/tests/<file>.mjs
+cd ~/.claude/skills/dev-browser && npx tsx ~/projects/wordsearch/tests/<file>.mjs
 ```
 
 Test files: `smoke.mjs`, `wordlists.mjs`, `puzzle.mjs`, `gameplay.mjs`, `hints.mjs`, `navigation.mjs`, `settings.mjs`
