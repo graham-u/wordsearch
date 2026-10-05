@@ -24,11 +24,13 @@ Bump in **two places** simultaneously (in the same commit as the user-facing cha
 
 Both must use the same version number. The version number tells the user which build they're running (visible bottom-right corner).
 
-A **pre-push hook** (`.githooks/pre-push`) enforces this — it blocks pushes that change user-facing files without bumping both version locations. After a fresh clone, activate hooks with:
+A **pre-push hook** (`.githooks/pre-push`) enforces this — it blocks pushes that change user-facing files without bumping both version locations. After a fresh clone, link it into place:
 
 ```bash
-git config core.hooksPath .githooks
+ln -s ../../.githooks/pre-push .git/hooks/pre-push
 ```
+
+Git runs it from `.git/hooks/` directly, or through a global `core.hooksPath` dispatcher that runs a repository's own `.git/hooks/pre-push`, as on the box this project lives on. Don't set `core.hooksPath` for this repo: it would shut out the global hooks.
 
 ## Deployment
 
