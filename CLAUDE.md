@@ -24,13 +24,14 @@ Bump in **two places** simultaneously (in the same commit as the user-facing cha
 
 Both must use the same version number. The version number tells the user which build they're running (visible bottom-right corner).
 
-A **pre-push hook** (`.githooks/pre-push`) enforces this — it blocks pushes that change user-facing files without bumping both version locations. After a fresh clone, link it into place:
+A **pre-push hook** (`.githooks/pre-push`) enforces this — it blocks pushes that change user-facing files without bumping both version locations. After a fresh clone, declare it in the clone's git config:
 
 ```bash
-ln -s ../../.githooks/pre-push .git/hooks/pre-push
+git config hook.version-bump.event chained-pre-push
+git config hook.version-bump.command .githooks/pre-push
 ```
 
-Git runs it from `.git/hooks/` directly, or through a global `core.hooksPath` dispatcher that runs a repository's own `.git/hooks/pre-push`, as on the box this project lives on. Don't set `core.hooksPath` for this repo: it would shut out the global hooks.
+On the box this project lives on, that joins it to the box's hook chain, after the box-wide pre-push hooks; `~/.claude/reference/commit-hooks.md` describes the chain. Don't link it into `.git/hooks/` or set `core.hooksPath`: either puts it outside the chain.
 
 ## Deployment
 
